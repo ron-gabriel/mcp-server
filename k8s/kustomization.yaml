@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mcp-server
+
+resources:
+  - serviceaccount.yaml
+  - configmap.yaml
+  - service.yaml
+  - deployment.yaml
+  - poddisruptionbudget.yaml
+  - networkpolicy.yaml
+  - horizontalpodautoscaler.yaml
+  - ingress.yaml
+
+images:
+  - name: ${REGISTRY:-your-registry}/mcp-server
+    newTag: ${IMAGE_TAG:-latest}
+
+configMapGenerator:
+  - name: mcp-server-config
+    behavior: merge
+    envs:
+      - config.env
+
+secretGenerator:
+  - name: mcp-server-secret
+    behavior: replace
+    envs:
+      - secrets.env
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+commonLabels:
+  app: mcp-server
+  environment: ${ENVIRONMENT:-production}
+
+replicas:
+  - name: mcp-server
+    count: ${REPLICAS:-1}

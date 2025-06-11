@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+.processed-emails.json
+k8s/config.env
+k8s/secrets.env
+*.pem
+*.key
+*.crt

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-server-config
+data:
+  OUTLOOK_USER_EMAIL: "user@yourdomain.com"
+  OUTLOOK_FOLDER_NAME: "Inbox"
+  WEBHOOK_PUBLIC_URL: "https://mcp-server.yourdomain.com"
+  API_ENDPOINT: "https://api.yourdomain.com/endpoint"
+  LLM_WEBHOOK_URL: "https://llm-processor.yourdomain.com/webhook"

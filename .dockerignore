@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+.env
+.env.local
+.git
+.gitignore
+README.md
+.DS_Store
+dist
+*.log
+.vscode
+.idea
+coverage
+.nyc_output
+.processed-emails.json
+k8s/
+docker-compose.yml

@@ -1,0 +1,21 @@
+{
+  "name": "mcp-chatgpt-integration-example",
+  "version": "1.0.0",
+  "description": "Example integration between ChatGPT and MCP Email Server",
+  "main": "nodejs-client.js",
+  "scripts": {
+    "start": "node nodejs-client.js",
+    "webhook": "python3 python-webhook-handler.py",
+    "dev": "nodemon nodejs-client.js"
+  },
+  "dependencies": {
+    "@anthropic/mcp": "^1.0.0",
+    "openai": "^4.0.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
