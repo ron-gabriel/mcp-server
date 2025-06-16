@@ -2,6 +2,7 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { ClientSecretCredential } from '@azure/identity';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials';
 import 'isomorphic-fetch';
+import { MCPError, MCPErrorCode } from '../errors.js';
 
 export interface EmailMessage {
   id: string;
@@ -71,7 +72,25 @@ export class EmailService {
       }));
     } catch (error) {
       console.error('Error fetching emails:', error);
-      throw error;
+      if (error instanceof Error && error.message.includes('401')) {
+        throw new MCPError(
+          MCPErrorCode.AUTH_REQUIRED,
+          'Authentication failed while fetching emails',
+          { originalError: error.message }
+        );
+      }
+      if (error instanceof Error && error.message.includes('403')) {
+        throw new MCPError(
+          MCPErrorCode.INSUFFICIENT_PERMISSIONS,
+          'Insufficient permissions to read emails',
+          { folderName: this.folderName, originalError: error.message }
+        );
+      }
+      throw new MCPError(
+        MCPErrorCode.EMAIL_SERVICE_ERROR,
+        `Failed to fetch unread emails: ${error instanceof Error ? error.message : String(error)}`,
+        { limit, folderName: this.folderName }
+      );
     }
   }
 
@@ -95,7 +114,25 @@ export class EmailService {
       };
     } catch (error) {
       console.error('Error fetching email by ID:', error);
-      throw error;
+      if (error instanceof Error && error.message.includes('404')) {
+        throw new MCPError(
+          MCPErrorCode.EMAIL_NOT_FOUND,
+          `Email with ID '${messageId}' not found`,
+          { messageId }
+        );
+      }
+      if (error instanceof Error && error.message.includes('403')) {
+        throw new MCPError(
+          MCPErrorCode.EMAIL_ACCESS_DENIED,
+          `Access denied to email with ID '${messageId}'`,
+          { messageId }
+        );
+      }
+      throw new MCPError(
+        MCPErrorCode.EMAIL_SERVICE_ERROR,
+        `Failed to fetch email by ID: ${error instanceof Error ? error.message : String(error)}`,
+        { messageId }
+      );
     }
   }
 
@@ -108,7 +145,11 @@ export class EmailService {
         });
     } catch (error) {
       console.error('Error marking email as read:', error);
-      throw error;
+      throw new MCPError(
+        MCPErrorCode.EMAIL_SERVICE_ERROR,
+        `Failed to mark email as read: ${error instanceof Error ? error.message : String(error)}`,
+        { messageId }
+      );
     }
   }
 
@@ -135,7 +176,18 @@ export class EmailService {
       }));
     } catch (error) {
       console.error('Error searching emails:', error);
-      throw error;
+      if (error instanceof Error && error.message.includes('400')) {
+        throw new MCPError(
+          MCPErrorCode.INVALID_PARAMS,
+          'Invalid search query format',
+          { query, originalError: error.message }
+        );
+      }
+      throw new MCPError(
+        MCPErrorCode.EMAIL_SERVICE_ERROR,
+        `Failed to search emails: ${error instanceof Error ? error.message : String(error)}`,
+        { query, limit }
+      );
     }
   }
 
@@ -161,7 +213,11 @@ export class EmailService {
       }));
     } catch (error) {
       console.error('Error fetching conversation:', error);
-      throw error;
+      throw new MCPError(
+        MCPErrorCode.EMAIL_SERVICE_ERROR,
+        `Failed to fetch conversation: ${error instanceof Error ? error.message : String(error)}`,
+        { conversationId }
+      );
     }
   }
 
