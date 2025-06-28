@@ -155,9 +155,11 @@ export class EmailService {
 
   async searchEmails(query: string, limit: number = 10): Promise<EmailMessage[]> {
     try {
+      const sanitizedQuery = this.sanitizeSearchQuery(query);
+      
       const messages = await this.graphClient
         .api(`/users/${this.userEmail}/messages`)
-        .search(`"${query}"`)
+        .search(sanitizedQuery)
         .select('id,subject,from,receivedDateTime,bodyPreview,body,hasAttachments,conversationId')
         .orderby('receivedDateTime desc')
         .top(limit)
@@ -176,6 +178,11 @@ export class EmailService {
       }));
     } catch (error) {
       console.error('Error searching emails:', error);
+      
+      if (error instanceof MCPError) {
+        throw error;
+      }
+      
       if (error instanceof Error && error.message.includes('400')) {
         throw new MCPError(
           MCPErrorCode.INVALID_PARAMS,
@@ -233,5 +240,30 @@ export class EmailService {
       .replace(/&#39;/g, "'")     // Replace &#39;
       .replace(/\s+/g, ' ')       // Normalize whitespace
       .trim();
+  }
+
+  private sanitizeSearchQuery(query: string): string {
+    
+    const sanitized = query
+      .replace(/["'`]/g, '')
+      .replace(/\b(AND|OR|NOT|NEAR|ONEAR)\b/gi, '')
+      .replace(/[()]/g, '')
+      .replace(/[*?]/g, '')
+      .replace(/:/g, '')
+      .replace(/[<>]/g, '')
+      .replace(/\\/g, '')
+      // Normalize whitespace
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!sanitized) {
+      throw new MCPError(
+        MCPErrorCode.INVALID_PARAMS,
+        'Search query contains only invalid characters',
+        { originalQuery: query }
+      );
+    }
+
+    return `"${sanitized}"`;
   }
 }
