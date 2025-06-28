@@ -95,7 +95,11 @@ export class WebhookService {
         // Process each notification
         for (const item of notification.value || []) {
           if (item.changeType === 'created' && item.resourceData?.id) {
-            await this.processNewEmail(item.resourceData.id);
+            try {
+              await this.processNewEmail(item.resourceData.id);
+            } catch (error) {
+              console.error(`Failed to process email ${item.resourceData.id}:`, error);
+            }
           }
         }
 
